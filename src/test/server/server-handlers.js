@@ -5,7 +5,6 @@ import * as listItemsDB from "test/data/list-items";
 import * as booksDB from "test/data/books";
 
 let sleep;
-console.log(process.env);
 if (process.env.CI) {
   sleep = () => Promise.resolve();
 } else if (process.env.NODE_ENV === "test") {
@@ -140,7 +139,7 @@ const handlers = [
   }),
 ].map((handler) => {
   const originalResolver = handler.resolver;
-  handler.resolver = async function (req, res, ctx) {
+  handler.resolver = async function(req, res, ctx) {
     try {
       if (shouldFail(req)) {
         throw new Error("Request failure (for testing purpose).");
