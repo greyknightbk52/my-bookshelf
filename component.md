@@ -1,0 +1,84 @@
+# Screen
+
+- UnauthenticatedApp
+  - `/`
+  - null `user`
+  - components
+    - `Logo`
+    - Login `Modal`,
+    - Register `Modal`
+    - `Modal` has `Button` clicked, show `LoginForm` to enter user & password
+    - on `LoginForm`, click a confirm `Button` to call `{backend}/login` or `{backend}/register`
+  - logic
+    - succeed, save `token` to local storage, update `user` in state of `AuthProvider`
+    - `AuthProvider` calls `{backend}/bootstrap` to query added books as `listItem` (`book` and reading status)
+    - cache whole list by key `list-items`
+    - cache each book by key `book` and `bookId`
+- AuthenticatedApp
+  - `/`
+  - authenticated `user`
+  - components
+    - `Button` to logout by clear local storage
+    - `Nav` includes `NavLink`s to `AppRoutes`
+      - `/list`
+      - `/finished`
+      - `/discover`
+  - `ErrorFallback` to handle error
+  - `AppRoutes` defines all routing rules with `/list` as default (1st route)
+- `<ReadlingListScreen/>`
+  - `/list`
+  - authenticated `user`
+  - components
+    - `ListItemList` with props `filterListItems` includes `listItem` without `finishDate`
+- FinishedScreen
+  - `/finished`
+  - authenticated `user`
+    - `ListItemList` with props `filterListItems` includes `listItem` with `finishDate`
+- DiscoverScreen
+  - `/discover`
+  - authenticated `user`
+  - component
+    - `<BookListUL/>`, `<BookRow/>` to display result of search
+    - `<Spinner />` when `isLoading`
+  - logic
+    - always `refetchBookSearchQuery` when unmounted to refresh query cache for book search
+    - click `Button` with icon `FaSearch` to call `{backend}/books?query={query}` to search in `booksDB` and put in query cache with `queryKey` as `['bookSearch', {query}]`
+- BookScreen
+  - `/book/:bookId`
+  - logic
+    - extract `bookId` from URL param, query `book` from cache
+    - query `listItem` by `bookId`
+    - show all details from `book` and `listItem`
+- NotFoundScreen
+  - not found link
+
+# Common Components
+
+- `<ListItemList filterListItems noListItems noFilteredListItems />`
+  - Get data by key `list-items` in query cache
+  - Filter all `listItems` by condition in prop `filterListItems`
+  - Components
+    - `BookListUL`
+    - `BookRow` to show details of a book
+    - has no `listItems` in query cache, display `{noListItems}`
+    - has no fitered `listItems`, display `{noFilteredListItems}`
+- `<BookRow book />`
+  - Get `listItem` of by `book.id` from query cache
+  - Show `title`, `author`, `coverImageUrl`, `publisher`, `synopsis` from `book`
+  - Show `Rating` component basing `listItem.rating`
+  - Show `StatusButtons` for `book`
+  - Show link to `/book/{book.id}` to show more details about the `book` (notes)
+- `<StatusButtons book/>`
+  - from prop `book`, query `listItem` by `book.id`
+  - build `TooltipButton`s to mutate query cache and call request to backend
+  - `useUpdateListItem`
+    - call `PUT /list-items/{listItem.id}` with data as `{id: listItem.id, finishDate}`
+      - `finishDate` as `null` to mark as unread
+      - `finishDate` as `Date.now()` to mark as read
+  - `useRemoveListItem`
+    - call `DELETE /list-items/{listItem.id}` to remove the book from reading list
+  - `useCreateListItem`
+    - call `POST /list-items` with data as `{bookId: {book.id}}` to add the book to reading list
+- `<NotesTextarea listItem />`
+  - show `listItem.notes`
+  - change text, `debounceFn` to update notes of the `listItem` on query cache and backend DB
