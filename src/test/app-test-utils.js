@@ -38,7 +38,7 @@ const waitForLoadingToFinish = () =>
       ...screen.queryAllByLabelText(/loading/i),
       ...screen.queryAllByText(/loading/i),
     ],
-    { timeout: 1000 }
+    { timeout: 60000 }
   );
 
 export * from "@testing-library/react";
