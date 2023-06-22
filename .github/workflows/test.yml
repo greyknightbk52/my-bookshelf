@@ -14,9 +14,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-      - name: Install npm
-        run: npm install --global npm@8
       - name: Install dependencies
-        run: npm install --legacy-peer-deps --no-save
+        run: npm install
       - name: Run test
         run: npx jest
